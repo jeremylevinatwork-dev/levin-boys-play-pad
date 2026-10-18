@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Harrison &amp; Noah's Play Pad</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Play Pad">
+<meta name="theme-color" content="#0F2440">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; overflow:hidden; }
+  body {
+    font-family: "Arial Rounded MT Bold", "Helvetica Rounded", Arial, sans-serif;
+    background: linear-gradient(180deg, #0F2440 0%, #1a365d 55%, #2b6cb0 100%);
+    color:#fff; user-select:none; -webkit-user-select:none; touch-action: manipulation;
+  }
+  header { text-align:center; padding:14px 10px 6px; }
+  header .names { font-size:30px; font-weight:900; color:#f6c945; text-shadow:0 2px 0 #92600a; letter-spacing:.5px; }
+  header .sub { font-size:15px; color:#dbeafe; margin-top:2px; }
+  #menu { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:16px; max-width:560px; margin:0 auto; }
+  .bigbtn {
+    border:none; border-radius:26px; padding:26px 8px 20px; font-family:inherit; cursor:pointer;
+    color:#123; font-weight:900; box-shadow:0 6px 0 rgba(0,0,0,.35); transition:transform .08s;
+  }
+  .bigbtn:active { transform:scale(.95); box-shadow:0 2px 0 rgba(0,0,0,.35); }
+  .bigbtn .emo { font-size:56px; display:block; line-height:1.1; }
+  .bigbtn .lbl { font-size:20px; display:block; margin-top:6px; color:#0F2440; }
+  .b1 { background:#ffd93d; } .b2 { background:#6ee7a0; } .b3 { background:#7dd3fc; } .b4 { background:#fda4af; }
+  .screen { position:fixed; inset:0; background:linear-gradient(180deg,#0F2440,#1a365d 60%,#2b6cb0); display:none; flex-direction:column; }
+  .screen.on { display:flex; }
+  .topbar { display:flex; align-items:center; gap:10px; padding:12px; }
+  .back { background:#f6c945; color:#0F2440; border:none; font-family:inherit; font-weight:900; font-size:18px;
+          border-radius:999px; padding:10px 18px; box-shadow:0 4px 0 rgba(0,0,0,.35); cursor:pointer; }
+  .back:active { transform:scale(.95); }
+  .title { font-size:22px; font-weight:900; color:#fff; }
+  .score { margin-left:auto; background:#fff; color:#0F2440; font-weight:900; border-radius:999px; padding:8px 16px; font-size:18px; }
+  .stage { flex:1; position:relative; overflow:hidden; }
+  .balloon { position:absolute; font-size:64px; cursor:pointer; animation:floatUp linear forwards; line-height:1; }
+  @keyframes floatUp { from { transform:translateY(20px); } to { transform:translateY(-110vh); } }
+  .pop { animation:popit .18s forwards !important; }
+  @keyframes popit { to { transform:scale(2.2); opacity:0; } }
+  .cheer { position:absolute; left:0; right:0; top:34%; text-align:center; font-size:40px; font-weight:900; color:#f6c945;
+           text-shadow:0 3px 0 #92600a; pointer-events:none; opacity:0; transition:opacity .25s; padding:0 12px; }
+  .cheer.show { opacity:1; }
+  /* count */
+  #countStage { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:16px; }
+  #countItems { font-size:52px; line-height:1.25; text-align:center; max-width:520px; min-height:130px; letter-spacing:4px; }
+  #countNum { font-size:110px; font-weight:900; color:#f6c945; text-shadow:0 4px 0 #92600a; min-height:120px; }
+  .tapbtn { background:#ffd93d; border:none; font-family:inherit; font-weight:900; font-size:24px; color:#0F2440;
+            border-radius:999px; padding:18px 38px; box-shadow:0 6px 0 rgba(0,0,0,.35); cursor:pointer; }
+  .tapbtn:active { transform:scale(.95); }
+  /* animals */
+  #animalGrid { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:16px; overflow:auto; }
+  .animal { border:none; border-radius:24px; background:#fff; padding:18px 6px 12px; cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,.3); font-family:inherit; }
+  .animal:active { transform:scale(.94); }
+  .animal .emo { font-size:64px; display:block; }
+  .animal .lbl { font-size:19px; font-weight:900; color:#0F2440; display:block; margin-top:4px; }
+  /* draw */
+  #drawWrap { flex:1; display:flex; flex-direction:column; }
+  #pad { flex:1; background:#fff; touch-action:none; }
+  #colors { display:flex; gap:10px; padding:12px; justify-content:center; flex-wrap:wrap; background:rgba(255,255,255,.08); }
+  .swatch { width:46px; height:46px; border-radius:50%; border:4px solid transparent; cursor:pointer; }
+  .swatch.sel { border-color:#fff; transform:scale(1.12); }
+  .toolbtn { background:#fff; color:#0F2440; border:none; font-family:inherit; font-weight:900; font-size:16px;
+             border-radius:999px; padding:12px 18px; cursor:pointer; }
+  .b5 { background:#c4b5fd; }
+  /* storm chaser */
+  #stormStage { background:linear-gradient(180deg,#7dd3fc 0%,#bae6fd 55%,#86efac 55.2%,#4ade80 100%); transition:background 1s; }
+  #stormStage.dark { background:linear-gradient(180deg,#334155 0%,#64748b 55%,#475569 55.2%,#334155 100%); }
+  #stormStage.sunset { background:linear-gradient(180deg,#fda4af 0%,#fcd34d 55%,#86efac 55.2%,#4ade80 100%); }
+  #wxMain { position:absolute; top:6%; left:0; right:0; text-align:center; font-size:110px; line-height:1; pointer-events:none; }
+  #tornadoFx { position:absolute; top:12%; font-size:120px; line-height:1; display:none; animation:sway 1.6s ease-in-out infinite alternate; pointer-events:none; }
+  @keyframes sway { from { transform:translateX(6vw) rotate(-4deg); } to { transform:translateX(58vw) rotate(4deg); } }
+  #flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; }
+  .drop { position:absolute; top:-40px; font-size:26px; animation:fall linear forwards; pointer-events:none; }
+  @keyframes fall { to { transform:translateY(112vh); } }
+  #wetGlass { position:absolute; inset:0; background:rgba(125,211,252,.28); display:none; pointer-events:none; }
+  #road { position:absolute; left:0; right:0; bottom:0; height:64px; background:#3f3f46; border-top:6px solid #facc15; }
+  #road:before { content:''; position:absolute; left:0; right:0; top:28px; border-top:6px dashed #fff; }
+  #stormCar { position:absolute; bottom:44px; font-size:76px; line-height:1; transition:left .35s; transform:scaleX(-1); }
+  #stormHouse { position:absolute; bottom:64px; right:4%; font-size:84px; line-height:1; display:none; }
+  #stormMsg { position:absolute; left:10px; right:10px; top:10px; background:rgba(15,36,64,.88); color:#fff; border-radius:18px;
+              padding:12px 14px; font-size:21px; font-weight:900; text-align:center; }
+  #stormBadges { display:flex; gap:6px; }
+  .badge { font-size:28px; opacity:.22; filter:grayscale(1); transition:all .3s; }
+  .badge.earned { opacity:1; filter:none; transform:scale(1.15); }
+  #stormActions { padding:12px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; background:rgba(255,255,255,.08); min-height:86px; align-items:center; }
+  .actbtn { background:#ffd93d; border:none; font-family:inherit; font-weight:900; font-size:23px; color:#0F2440;
+            border-radius:999px; padding:18px 30px; box-shadow:0 6px 0 rgba(0,0,0,.35); cursor:pointer; }
+  .actbtn:active { transform:scale(.95); }
+  .actbtn.blue { background:#7dd3fc; } .actbtn.pink { background:#fda4af; }
+  #steerRow { display:flex; gap:12px; justify-content:center; padding:0 12px 14px; background:rgba(255,255,255,.08); }
+  .steer { background:#fff; border:none; font-family:inherit; font-weight:900; font-size:24px; color:#0F2440;
+           border-radius:999px; padding:12px 26px; box-shadow:0 4px 0 rgba(0,0,0,.35); cursor:pointer; }
+  .steer:active { transform:scale(.93); }
+  #garage { display:none; padding:10px 12px 2px; background:rgba(255,255,255,.08); text-align:center; }
+  #garage .gtitle { font-size:16px; font-weight:900; color:#f6c945; margin-bottom:8px; }
+  #garageRow { display:flex; gap:10px; justify-content:flex-start; overflow-x:auto; padding:4px 2px 10px; }
+  .carbtn { flex:0 0 auto; background:#fff; border:4px solid transparent; border-radius:18px; padding:8px 10px 6px; cursor:pointer; font-family:inherit; }
+  .carbtn .emo { font-size:44px; display:block; line-height:1.1; }
+  .carbtn .cl { font-size:12px; font-weight:900; color:#0F2440; display:block; }
+  .carbtn.sel { border-color:#f6c945; }
+  .carbtn.locked { opacity:.55; }
+  .confetti { position:absolute; top:-40px; font-size:30px; animation:fall linear forwards; pointer-events:none; z-index:5; }
+  #stormStage.shake { animation:shake .4s; }
+  @keyframes shake { 0%,100% { transform:translateX(0); } 20% { transform:translateX(-7px); } 40% { transform:translateX(6px); } 60% { transform:translateX(-4px); } 80% { transform:translateX(3px); } }
+  .trophyRow { font-size:52px; text-align:center; line-height:1.5; padding:6px 12px; }
+  /* learning */
+  #chart100 { display:grid; grid-template-columns:repeat(10,1fr); gap:4px; padding:10px; overflow:auto; }
+  .ncell { border:none; border-radius:9px; background:#fff; color:#0F2440; font-family:inherit; font-weight:900;
+           font-size:15px; padding:8px 0; cursor:pointer; }
+  .ncell.lit { background:#f6c945; }
+  .ncell.now { background:#e53e3e; color:#fff; transform:scale(1.18); }
+  .ncell:active { transform:scale(.92); }
+  .ctlrow { display:flex; gap:10px; justify-content:center; padding:10px; flex-wrap:wrap; background:rgba(255,255,255,.08); }
+  .learnMsg { text-align:center; font-size:22px; font-weight:900; padding:10px 14px 2px; min-height:34px; }
+  .quizrow { display:flex; gap:12px; justify-content:center; padding:8px 12px 14px; flex-wrap:wrap; }
+  .qbtn { background:#fff; border:none; font-family:inherit; font-weight:900; font-size:30px; color:#0F2440;
+          border-radius:18px; padding:16px 26px; box-shadow:0 5px 0 rgba(0,0,0,.3); cursor:pointer; min-width:92px; }
+  .qbtn:active { transform:scale(.94); }
+  #abcGrid { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; padding:12px; overflow:auto; }
+  .lcell { border:none; border-radius:16px; background:#fff; color:#0F2440; font-family:inherit; font-weight:900;
+           font-size:30px; padding:12px 0; cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.25); }
+  .lcell small { display:block; font-size:12px; font-weight:900; color:#4a5568; }
+  .lcell:active { transform:scale(.93); }
+  #abcBig { text-align:center; padding:8px 12px 0; min-height:120px; }
+  #abcBig .bigL { font-size:84px; font-weight:900; color:#f6c945; text-shadow:0 3px 0 #92600a; }
+  #abcBig .bigW { font-size:26px; font-weight:900; }
+  #shapeStage, #nameStage { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:10px; overflow:auto; }
+  .shapeGrid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:8px; width:100%; max-width:520px; }
+  .shapeBtn { background:#fff; border:none; border-radius:20px; padding:12px 4px 8px; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,.3); font-family:inherit; }
+  .shapeBtn .sl { display:block; font-size:16px; font-weight:900; color:#0F2440; margin-top:4px; }
+  .shapeBtn:active { transform:scale(.94); }
+  #nameCanvasWrap { position:relative; width:100%; max-width:560px; aspect-ratio: 4 / 3; background:#fff; border-radius:20px; overflow:hidden; }
+  #nameGuide, #nameDraw { position:absolute; inset:0; width:100%; height:100%; touch-action:none; }
+  .letterDots { display:flex; gap:6px; justify-content:center; padding:8px; flex-wrap:wrap; }
+  .ldot { width:40px; height:40px; border-radius:50%; background:#fff; color:#0F2440; font-weight:900; font-size:20px;
+          display:flex; align-items:center; justify-content:center; opacity:.45; }
+  .ldot.cur { opacity:1; background:#f6c945; transform:scale(1.15); }
+  .ldot.done { opacity:1; background:#38a169; color:#fff; }
+  .trophyLbl { text-align:center; font-size:18px; font-weight:900; color:#f6c945; margin-top:10px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="names">⭐ Harrison &amp; Noah ⭐</div>
+  <div class="sub">Tap a game and play!</div>
+  <div style="text-align:center;margin-top:6px;font-size:14px;color:#f6c945;font-weight:900">Made with ❤️ by Dad</div>
+</header>
+<div id="menu">
+  <button class="bigbtn b1" onclick="openScreen('pop')"><span class="emo">🎈</span><span class="lbl">Pop Balloons</span></button>
+  <button class="bigbtn b2" onclick="openScreen('count')"><span class="emo">🔢</span><span class="lbl">Count With Me</span></button>
+  <button class="bigbtn b3" onclick="openScreen('animals')"><span class="emo">🦁</span><span class="lbl">Animal Friends</span></button>
+  <button class="bigbtn b4" onclick="openScreen('draw')"><span class="emo">🎨</span><span class="lbl">Draw</span></button>
+  <div style="grid-column:span 2;text-align:center;font-size:19px;font-weight:900;color:#f6c945;padding:4px 0 0">📚 Learning Time</div>
+  <button class="bigbtn b2" onclick="openScreen('count100')"><span class="emo">🚀</span><span class="lbl">Count to 100</span></button>
+  <button class="bigbtn b3" onclick="openScreen('abc')"><span class="emo">🔤</span><span class="lbl">ABC Letters</span></button>
+  <button class="bigbtn b1" onclick="openScreen('shapes')"><span class="emo">🔷</span><span class="lbl">Shapes</span></button>
+  <button class="bigbtn b4" onclick="openScreen('name')"><span class="emo">✏️</span><span class="lbl">Write My Name</span></button>
+  <button class="bigbtn b5" style="grid-column:span 2" onclick="openScreen('storm')"><span class="emo">🌪️🚗</span><span class="lbl">Storm Chaser — Weather Watcher!</span></button>
+  <button class="bigbtn b2" style="grid-column:span 2" onclick="openScreen('trophies')"><span class="emo">🏆</span><span class="lbl">Harrison's Trophy Shelf</span></button>
+</div>
+
+<!-- COUNT TO 100 -->
+<div class="screen" id="scr-count100">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">🚀 Count to 100</div><div class="score">⭐ <span id="c100Stars">0</span></div></div>
+  <div class="learnMsg" id="c100Msg">Tap a number to hear it!</div>
+  <div id="chart100"></div>
+  <div class="ctlrow">
+    <button class="actbtn" id="c100Go" onclick="toggleCount100()">▶️ Count with me!</button>
+    <button class="actbtn blue" onclick="quiz100()">❓ What comes next?</button>
+  </div>
+  <div class="quizrow" id="c100Quiz"></div>
+</div>
+
+<!-- ABC -->
+<div class="screen" id="scr-abc">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">🔤 ABC Letters</div><div class="score">⭐ <span id="abcStars">0</span></div></div>
+  <div id="abcBig"><div class="bigW" style="padding-top:26px">Tap a letter! 👇</div></div>
+  <div class="learnMsg" id="abcMsg"></div>
+  <div class="ctlrow"><button class="actbtn blue" onclick="abcQuiz()">❓ Find the letter!</button></div>
+  <div id="abcGrid"></div>
+</div>
+
+<!-- SHAPES -->
+<div class="screen" id="scr-shapes">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">🔷 Shapes</div><div class="score">⭐ <span id="shapeStars">0</span></div></div>
+  <div class="stage" id="shapeStage">
+    <div class="learnMsg" id="shapeMsg">Tap a shape to learn it!</div>
+    <div class="shapeGrid" id="shapeGrid"></div>
+    <div class="ctlrow" style="background:none"><button class="actbtn blue" onclick="shapeQuiz()">❓ Shape hunt!</button></div>
+  </div>
+</div>
+
+<!-- WRITE MY NAME -->
+<div class="screen" id="scr-name">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">✏️ Write My Name</div><div class="score">⭐ <span id="nameStars">0</span></div></div>
+  <div class="stage" id="nameStage">
+    <div class="ctlrow" style="background:none;padding-bottom:0">
+      <button class="actbtn" onclick="setName('HARRISON')">⭐ HARRISON</button>
+      <button class="actbtn blue" onclick="setName('NOAH')">⭐ NOAH</button>
+    </div>
+    <div class="learnMsg" id="nameMsg">Trace the letter with your finger! 👆</div>
+    <div class="letterDots" id="nameDots"></div>
+    <div id="nameCanvasWrap">
+      <canvas id="nameGuide"></canvas>
+      <canvas id="nameDraw"></canvas>
+    </div>
+    <div class="ctlrow" style="background:none">
+      <button class="actbtn blue" onclick="hearLetter()">🔊 Hear it</button>
+      <button class="actbtn" onclick="clearNameDraw()">🧽 Erase</button>
+      <button class="actbtn" style="background:#6ee7a0" onclick="letterDone()">✔️ I did it!</button>
+    </div>
+  </div>
+</div>
+
+<!-- TROPHIES -->
+<div class="screen" id="scr-trophies">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">🏆 Harrison's Trophy Shelf</div></div>
+  <div style="overflow:auto;flex:1">
+    <div class="trophyLbl">⭐ Weather Watcher Stars</div>
+    <div class="trophyRow" id="trophyStars">0</div>
+    <div class="trophyLbl">Weather Badges</div>
+    <div class="trophyRow" id="trophyBadges"></div>
+    <div class="trophyLbl">My Cars</div>
+    <div class="trophyRow" id="trophyCars"></div>
+    <div class="trophyLbl">📚 Learning</div>
+    <div id="trophyLearn" style="text-align:center;font-size:18px;font-weight:900;line-height:1.7;padding:4px 16px"></div>
+    <div style="text-align:center;padding:18px;color:#f6c945;font-weight:900">Made with ❤️ by Dad</div>
+  </div>
+</div>
+
+<!-- POP -->
+<div class="screen" id="scr-pop">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">🎈 Pop the Balloons!</div><div class="score">Popped: <span id="popScore">0</span></div></div>
+  <div class="stage" id="popStage"><div class="cheer" id="popCheer"></div></div>
+</div>
+
+<!-- COUNT -->
+<div class="screen" id="scr-count">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">🔢 Count With Me</div></div>
+  <div class="stage" id="countStage">
+    <div id="countItems"></div>
+    <div id="countNum"></div>
+    <button class="tapbtn" id="countBtn" onclick="nextCount()">Tap to count! 👆</button>
+  </div>
+</div>
+
+<!-- ANIMALS -->
+<div class="screen" id="scr-animals">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">🦁 Animal Friends — tap one!</div></div>
+  <div id="animalGrid"></div>
+</div>
+
+<!-- DRAW -->
+<div class="screen" id="scr-draw">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">🎨 Draw a Picture</div></div>
+  <div id="drawWrap">
+    <canvas id="pad"></canvas>
+    <div id="colors"></div>
+  </div>
+</div>
+
+<!-- STORM CHASER -->
+<div class="screen" id="scr-storm">
+  <div class="topbar"><button class="back" onclick="closeScreens()">⬅ Home</button><div class="title">🌪️ Storm Chaser</div><div id="stormBadges"><span class="badge" id="badge-hail">🧊</span><span class="badge" id="badge-rain">🌧️</span><span class="badge" id="badge-bolt">⚡</span><span class="badge" id="badge-tornado">🌪️</span><span class="badge" id="badge-rainbow">🌈</span></div></div>
+  <div id="garage"><div class="gtitle">🚗 Pick your car! &nbsp;⭐ Stars: <span id="starCount">0</span></div><div id="garageRow"></div></div>
+  <div class="stage" id="stormStage">
+    <div id="wxMain">☀️</div>
+    <div id="tornadoFx">🌪️</div>
+    <div id="rainLayer"></div>
+    <div id="wetGlass"></div>
+    <div id="flash"></div>
+    <div id="stormHouse">🏠</div>
+    <div id="road"></div>
+    <div id="stormCar" style="left:38%">🚙</div>
+    <div id="stormMsg">You are a Weather Watcher! 🌤️</div>
+  </div>
+  <div id="stormActions"></div>
+  <div id="steerRow">
+    <button class="steer" onclick="steerCar(-1)">◀</button>
+    <button class="steer" onclick="honk()">🔊 Beep!</button>
+    <button class="steer" onclick="steerCar(1)">▶</button>
+  </div>
+</div>
+
+<script>
+var AC = null;
+function beep(freq, dur, type, when) {
+  try {
+    if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.25, AC.currentTime + (when || 0));
+    g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + (when || 0) + dur);
+    o.connect(g); g.connect(AC.destination);
+    o.start(AC.currentTime + (when || 0)); o.stop(AC.currentTime + (when || 0) + dur);
+  } catch (e) {}
+}
+function say(text) {
+  try {
+    var u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95; u.pitch = 1.15;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function openScreen(id) {
+  closeScreens();
+  document.getElementById('scr-' + id).classList.add('on');
+  beep(660, 0.12, 'triangle'); beep(880, 0.14, 'triangle', 0.09);
+  if (id === 'pop') startPop();
+  if (id === 'count') resetCount();
+  if (id === 'draw') sizePad();
+  if (id === 'storm') startStorm();
+  if (id === 'trophies') renderTrophies();
+  if (id === 'count100') setup100();
+  if (id === 'abc') setupABC();
+  if (id === 'shapes') setupShapes();
+  if (id === 'name') setupName();
+}
+function closeScreens() {
+  var ss = document.querySelectorAll('.screen');
+  for (var i = 0; i < ss.length; i++) ss[i].classList.remove('on');
+  stopPop(); stopStorm(); stopCount100();
+  try { speechSynthesis.cancel(); } catch (e) {}
+}
+
+/* ---------- POP BALLOONS ---------- */
+var popTimer = null, popped = 0;
+var BALLOONS = ['🎈','🎈','🎈','🪩','⭐','❤️'];
+var CHEERS = ['Way to go!', 'Great job, Harrison!', 'Pop pop pop!', 'You did it!', 'Super star! ⭐', 'Noah says yay!'];
+function startPop() {
+  popped = 0; document.getElementById('popScore').textContent = '0';
+  stopPop();
+  popTimer = setInterval(spawnBalloon, 750);
+  spawnBalloon();
+}
+function stopPop() { if (popTimer) { clearInterval(popTimer); popTimer = null; } }
+function spawnBalloon() {
+  var stage = document.getElementById('popStage');
+  if (!stage || stage.querySelectorAll('.balloon').length > 9) return;
+  var b = document.createElement('div');
+  b.className = 'balloon';
+  b.textContent = BALLOONS[Math.floor(Math.random() * BALLOONS.length)];
+  b.style.left = (4 + Math.random() * 82) + '%';
+  b.style.bottom = '-80px';
+  b.style.top = 'auto';
+  b.style.animationDuration = (5 + Math.random() * 4) + 's';
+  b.style.fontSize = (52 + Math.random() * 30) + 'px';
+  b.addEventListener('click', function () {
+    if (b.classList.contains('pop')) return;
+    b.classList.add('pop');
+    popped++; document.getElementById('popScore').textContent = popped;
+    beep(220 + Math.random() * 500, 0.1, 'square');
+    beep(1200, 0.08, 'sine', 0.03);
+    if (popped % 5 === 0) {
+      var ch = document.getElementById('popCheer');
+      ch.textContent = CHEERS[Math.floor(Math.random() * CHEERS.length)];
+      ch.classList.add('show');
+      say(ch.textContent);
+      setTimeout(function () { ch.classList.remove('show'); }, 1600);
+    }
+    setTimeout(function () { b.remove(); }, 200);
+  });
+  b.addEventListener('animationend', function () { b.remove(); });
+  stage.appendChild(b);
+}
+
+/* ---------- COUNT ---------- */
+var countN = 0;
+var COUNT_SETS = [['⭐','star'],['🍎','apple'],['🎈','balloon'],['🐶','puppy'],['🚗','car'],['🍌','banana'],['🦆','duck'],['🌙','moon']];
+var countSet = COUNT_SETS[0];
+var NUMWORDS = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
+function resetCount() {
+  countN = 0;
+  countSet = COUNT_SETS[Math.floor(Math.random() * COUNT_SETS.length)];
+  document.getElementById('countItems').textContent = '';
+  document.getElementById('countNum').textContent = '';
+  document.getElementById('countBtn').textContent = 'Tap to count! 👆';
+}
+function nextCount() {
+  if (countN >= 10) { resetCount(); return; }
+  countN++;
+  document.getElementById('countItems').textContent += countSet[0];
+  document.getElementById('countNum').textContent = countN;
+  beep(500 + countN * 60, 0.12, 'triangle');
+  say(NUMWORDS[countN] + (countN === 1 ? ' ' + countSet[1] : ' ' + countSet[1] + 's'));
+  if (countN === 10) {
+    document.getElementById('countBtn').textContent = '🎉 Again!';
+    setTimeout(function () { say('Ten! Great counting!'); }, 700);
+  }
+}
+
+/* ---------- ANIMALS ---------- */
+var ANIMALS = [
+  ['🦁','Lion','Roar!'], ['🐶','Dog','Woof woof!'], ['🐱','Cat','Meow!'], ['🐮','Cow','Moo!'],
+  ['🐷','Pig','Oink oink!'], ['🦆','Duck','Quack quack!'], ['🐸','Frog','Ribbit!'], ['🐵','Monkey','Ooh ooh ah ah!'],
+  ['🐘','Elephant','Toot toot!'], ['🦉','Owl','Hoo hoo!'], ['🐴','Horse','Neigh!'], ['🐝','Bee','Buzz buzz!']
+];
+var grid = document.getElementById('animalGrid');
+ANIMALS.forEach(function (a) {
+  var btn = document.createElement('button');
+  btn.className = 'animal';
+  btn.innerHTML = '<span class="emo">' + a[0] + '</span><span class="lbl">' + a[1] + '</span>';
+  btn.addEventListener('click', function () {
+    beep(520, 0.1, 'triangle'); beep(780, 0.12, 'triangle', 0.08);
+    say(a[1] + '! ' + a[2]);
+  });
+  grid.appendChild(btn);
+});
+
+/* ---------- DRAW ---------- */
+var pad = document.getElementById('pad'), ctx = pad.getContext('2d');
+var drawing = false, drawColor = '#e53e3e', lastX = 0, lastY = 0;
+var PALETTE = ['#e53e3e','#dd6b20','#d69e2e','#38a169','#3182ce','#805ad5','#d53f8c','#1a202c'];
+var colorsDiv = document.getElementById('colors');
+PALETTE.forEach(function (c, i) {
+  var s = document.createElement('div');
+  s.className = 'swatch' + (i === 0 ? ' sel' : '');
+  s.style.background = c;
+  s.addEventListener('click', function () {
+    drawColor = c;
+    var all = colorsDiv.querySelectorAll('.swatch');
+    for (var j = 0; j < all.length; j++) all[j].classList.remove('sel');
+    s.classList.add('sel');
+    beep(700, 0.07, 'sine');
+  });
+  colorsDiv.appendChild(s);
+});
+var clearBtn = document.createElement('button');
+clearBtn.className = 'toolbtn'; clearBtn.textContent = '🧽 Start over';
+clearBtn.addEventListener('click', function () { ctx.clearRect(0, 0, pad.width, pad.height); beep(400, 0.1, 'sine'); });
+colorsDiv.appendChild(clearBtn);
+function sizePad() {
+  var r = pad.getBoundingClientRect();
+  if (r.width < 10) return;
+  var img = null;
+  try { if (pad.width > 0) img = ctx.getImageData(0, 0, pad.width, pad.height); } catch (e) {}
+  pad.width = r.width; pad.height = r.height;
+  ctx.lineWidth = 9; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (img) try { ctx.putImageData(img, 0, 0); } catch (e) {}
+}
+function padPos(e) {
+  var r = pad.getBoundingClientRect();
+  var t = (e.touches && e.touches[0]) ? e.touches[0] : e;
+  return { x: t.clientX - r.left, y: t.clientY - r.top };
+}
+pad.addEventListener('pointerdown', function (e) { drawing = true; var p = padPos(e); lastX = p.x; lastY = p.y; });
+pad.addEventListener('pointermove', function (e) {
+  if (!drawing) return;
+  e.preventDefault();
+  var p = padPos(e);
+  ctx.strokeStyle = drawColor;
+  ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke();
+  lastX = p.x; lastY = p.y;
+});
+pad.addEventListener('pointerup', function () { drawing = false; });
+pad.addEventListener('pointerleave', function () { drawing = false; });
+window.addEventListener('resize', function () {
+  if (document.getElementById('scr-draw').classList.contains('on')) sizePad();
+});
+
+/* ---------- STORM CHASER ---------- */
+var stormTimer = null, rainTimer = null, flashTimer = null;
+var carX = 38, flashCount = 0, stormOn = false;
+function stormSay(t) { document.getElementById('stormMsg').textContent = t; say(t); }
+function stormActions(html) { document.getElementById('stormActions').innerHTML = html; }
+function earnBadge(id) {
+  var b = document.getElementById('badge-' + id);
+  if (b && !b.classList.contains('earned')) {
+    b.classList.add('earned');
+    SAVE.badges[id] = true; saveSave();
+    beep(880, 0.12, 'triangle'); beep(1320, 0.18, 'triangle', 0.1);
+  }
+}
+function setCar(x) {
+  carX = Math.max(2, Math.min(78, x));
+  document.getElementById('stormCar').style.left = carX + '%';
+}
+function steerCar(d) { setCar(carX + d * 9); beep(300, 0.06, 'sine'); }
+function honk() { beep(370, 0.16, 'square'); beep(370, 0.22, 'square', 0.22); say('Beep beep!'); }
+function startStorm() {
+  stormOn = true;
+  loadSave();
+  ['rain','hail','bolt','tornado','rainbow'].forEach(function (id) {
+    document.getElementById('badge-' + id).classList.toggle('earned', !!SAVE.badges[id]);
+  });
+  document.getElementById('stormCar').textContent = SAVE.car;
+  renderGarage(); updateStars();
+  setCar(38);
+  stormPhase('drive');
+}
+function stopStorm() {
+  stormOn = false;
+  if (stormTimer) { clearTimeout(stormTimer); stormTimer = null; }
+  if (rainTimer) { clearInterval(rainTimer); rainTimer = null; }
+  if (flashTimer) { clearInterval(flashTimer); flashTimer = null; }
+  var rl = document.getElementById('rainLayer'); if (rl) rl.innerHTML = '';
+  var wg = document.getElementById('wetGlass'); if (wg) wg.style.display = 'none';
+  var tf = document.getElementById('tornadoFx'); if (tf) tf.style.display = 'none';
+  var sh = document.getElementById('stormHouse'); if (sh) sh.style.display = 'none';
+}
+function later(fn, ms) { if (stormTimer) clearTimeout(stormTimer); stormTimer = setTimeout(function () { if (stormOn) fn(); }, ms); }
+function stormPhase(name) {
+  if (!stormOn) return;
+  document.getElementById('garage').style.display = (name === 'drive') ? 'block' : 'none';
+  var stage = document.getElementById('stormStage'), wx = document.getElementById('wxMain');
+  document.getElementById('tornadoFx').style.display = 'none';
+  document.getElementById('stormHouse').style.display = 'none';
+  if (name === 'drive') {
+    stage.className = 'stage'; wx.textContent = '☀️';
+    stormActions('<button class="actbtn" onclick="startMission()">▶ Start Watching!</button>');
+    stormSay('Hi Harrison! Dad made you a Weather Watcher game! Drive your car and watch the sky!');
+  }
+  if (name === 'clouds') {
+    stage.className = 'stage'; wx.textContent = '🌥️';
+    stormActions('');
+    stormSay('Look! Dark clouds are coming. A storm might be coming!');
+    beep(240, 0.3, 'sine'); beep(196, 0.4, 'sine', 0.25);
+    later(function () { nextEvent(); }, 3400);
+  }
+  if (name === 'rain') {
+    stage.className = 'stage dark'; wx.textContent = '🌧️';
+    document.getElementById('wetGlass').style.display = 'block';
+    startRain();
+    stormActions('<button class="actbtn blue" onclick="wipersOn()">🧽 Turn on the Wipers!</button>');
+    stormSay('It is raining! The window is all wet. What do we turn on?');
+  }
+  if (name === 'lightning') {
+    stage.className = 'stage dark'; wx.textContent = '⛈️';
+    flashCount = 0;
+    startFlashes();
+    stormActions('<button class="actbtn" onclick="countFlash()">👆 I saw lightning! <span id="flashN">0</span></button>');
+    stormSay('Thunderstorm! Count the lightning flashes with me!');
+  }
+  if (name === 'tornado') {
+    stage.className = 'stage dark'; wx.textContent = '🌩️';
+    document.getElementById('tornadoFx').style.display = 'block';
+    document.getElementById('stormHouse').style.display = 'block';
+    beep(160, 0.5, 'sawtooth'); beep(140, 0.6, 'sawtooth', 0.4);
+    stormActions('<button class="actbtn" onclick="tornadoChoice(true)">🏠 Go inside!</button><button class="actbtn pink" onclick="tornadoChoice(false)">🌳 Under a tree</button>');
+    stormSay('TORNADO! I see a tornado! What do we do, Weather Watcher?');
+  }
+  if (name === 'hail') {
+    stage.className = 'stage dark'; wx.textContent = '🌨️';
+    startRain('🧊');
+    stormActions('<button class="actbtn" onclick="hailChoice(true)">🚗 Stay in the car!</button><button class="actbtn pink" onclick="hailChoice(false)">🏃 Get out and play</button>');
+    stormSay('Hail! Ice balls are falling from the sky! What do we do?');
+  }
+  if (name === 'rainbow') {
+    stage.className = 'stage sunset'; wx.textContent = '🌈';
+    stormActions('<button class="actbtn" onclick="stormPhase(&quot;drive&quot;)">🔁 Watch Again!</button>');
+    earnBadge('rainbow'); SAVE.stars++; saveSave(); updateStars(); confetti(); renderGarage();
+    stormSay('The storm is over! Look — a rainbow! Mission complete — you earned a star! Great job, Weather Watcher Harrison!');
+  }
+}
+function startRain(emo) {
+  var layer = document.getElementById('rainLayer');
+  if (rainTimer) clearInterval(rainTimer);
+  rainTimer = setInterval(function () {
+    if (!stormOn || layer.querySelectorAll('.drop').length > 26) return;
+    var d = document.createElement('div');
+    d.className = 'drop'; d.textContent = emo || '💧';
+    d.style.left = (Math.random() * 96) + '%';
+    d.style.animationDuration = (0.7 + Math.random() * 0.5) + 's';
+    d.addEventListener('animationend', function () { d.remove(); });
+    layer.appendChild(d);
+  }, 130);
+}
+function wipersOn() {
+  if (rainTimer) { clearInterval(rainTimer); rainTimer = null; }
+  document.getElementById('rainLayer').innerHTML = '';
+  document.getElementById('wetGlass').style.display = 'none';
+  earnBadge('rain');
+  beep(520, 0.1, 'triangle'); beep(660, 0.12, 'triangle', 0.1);
+  stormSay('Wipers on! Now we can see. Great safe driving!');
+  stormActions('');
+  later(function () { nextEvent(); }, 2600);
+}
+function startFlashes() {
+  var fl = document.getElementById('flash');
+  if (flashTimer) clearInterval(flashTimer);
+  flashTimer = setInterval(function () {
+    if (!stormOn) return;
+    fl.style.opacity = '0.85';
+    var stg = document.getElementById('stormStage'); stg.classList.remove('shake'); void stg.offsetWidth; stg.classList.add('shake');
+    beep(90, 0.35, 'sawtooth');
+    setTimeout(function () { fl.style.opacity = '0'; }, 130);
+  }, 2100);
+}
+function countFlash() {
+  flashCount++;
+  var n = document.getElementById('flashN'); if (n) n.textContent = flashCount;
+  beep(740, 0.1, 'triangle');
+  say(NUMWORDS[flashCount] || String(flashCount));
+  if (flashCount >= 3) {
+    if (flashTimer) { clearInterval(flashTimer); flashTimer = null; }
+    earnBadge('bolt');
+    stormSay('Three lightning flashes! We stay safe inside while it storms.');
+    stormActions('');
+    later(function () { nextEvent(); }, 2800);
+  }
+}
+function tornadoChoice(inside) {
+  if (inside) {
+    document.getElementById('tornadoFx').style.display = 'none';
+    setCar(74);
+    earnBadge('tornado');
+    stormActions('');
+    stormSay('YES! When there is a tornado, we go INSIDE a strong building and stay safe. You did it, Harrison!');
+    later(function () { nextEvent(); }, 4200);
+  } else {
+    beep(220, 0.2, 'square');
+    stormSay('Oops! Trees are NOT safe in a storm. Try again — where do we go?');
+  }
+}
+
+/* ---------- SAVE / GARAGE / MISSIONS / TROPHIES ---------- */
+var SAVE = { stars: 0, car: '🚙', badges: {}, cars: { '🚙': true }, learn: { hundred: 0, abc: 0, shapes: 0, names: 0 } };
+var CARS = [
+  { e: '🚙', n: 'Blue Car', cost: 0 }, { e: '🚗', n: 'Red Car', cost: 2 },
+  { e: '🚕', n: 'Taxi', cost: 4 }, { e: '🚓', n: 'Police Car', cost: 7 },
+  { e: '🚒', n: 'Fire Truck', cost: 10 }, { e: '🚜', n: 'Tractor', cost: 14 },
+  { e: '🏎️', n: 'Race Car', cost: 19 }, { e: '🚀', n: 'Rocket Car', cost: 25 }
+];
+var mission = [], missionIdx = 0;
+function loadSave() {
+  try {
+    var s = JSON.parse(localStorage.getItem('levinPlayPadSave') || 'null');
+    if (s) { SAVE.stars = s.stars || 0; SAVE.car = s.car || '🚙'; SAVE.badges = s.badges || {}; SAVE.cars = s.cars || { '🚙': true }; SAVE.learn = s.learn || { hundred: 0, abc: 0, shapes: 0, names: 0 }; }
+  } catch (e) {}
+}
+function saveSave() { try { localStorage.setItem('levinPlayPadSave', JSON.stringify(SAVE)); } catch (e) {} }
+function updateStars() { var el = document.getElementById('starCount'); if (el) el.textContent = SAVE.stars; }
+function renderGarage() {
+  var row = document.getElementById('garageRow'); if (!row) return;
+  row.innerHTML = '';
+  CARS.forEach(function (c, i) {
+    var owned = !!SAVE.cars[c.e];
+    var b = document.createElement('button');
+    b.className = 'carbtn' + (SAVE.car === c.e ? ' sel' : '') + (owned ? '' : ' locked');
+    b.innerHTML = '<span class="emo">' + c.e + '</span><span class="cl">' + (owned ? c.n : '🔒 ' + c.cost + '⭐') + '</span>';
+    b.addEventListener('click', function () { pickCar(i); });
+    row.appendChild(b);
+  });
+}
+function pickCar(i) {
+  var c = CARS[i];
+  if (SAVE.cars[c.e]) {
+    SAVE.car = c.e; saveSave();
+    document.getElementById('stormCar').textContent = c.e;
+    renderGarage(); beep(660, 0.1, 'triangle'); say(c.n + '!');
+  } else if (SAVE.stars >= c.cost) {
+    SAVE.cars[c.e] = true; SAVE.car = c.e; saveSave();
+    document.getElementById('stormCar').textContent = c.e;
+    renderGarage(); confetti();
+    beep(880, 0.12, 'triangle'); beep(1320, 0.2, 'triangle', 0.1);
+    say('You unlocked the ' + c.n + '! Great watching!');
+  } else {
+    beep(240, 0.15, 'square');
+    say('The ' + c.n + ' unlocks at ' + c.cost + ' stars. You have ' + SAVE.stars + '. Keep watching the sky!');
+  }
+}
+function startMission() {
+  mission = [(Math.random() < 0.5 ? 'rain' : 'hail'), 'lightning', 'tornado', 'rainbow'];
+  missionIdx = 0;
+  beep(196, 0.15, 'sawtooth'); beep(262, 0.15, 'sawtooth', 0.12); beep(392, 0.28, 'sawtooth', 0.24);
+  say('Vroom! Mission start!');
+  stormPhase('clouds');
+}
+function nextEvent() {
+  missionIdx++;
+  if (missionIdx < mission.length) stormPhase(mission[missionIdx]);
+  else stormPhase('drive');
+}
+function hailChoice(stay) {
+  if (stay) {
+    if (rainTimer) { clearInterval(rainTimer); rainTimer = null; }
+    document.getElementById('rainLayer').innerHTML = '';
+    earnBadge('hail');
+    stormActions('');
+    stormSay('Right! We stay safe and dry in the car when hail falls. Ice balls can bonk!');
+    later(function () { nextEvent(); }, 2800);
+  } else {
+    beep(220, 0.2, 'square');
+    stormSay('Oops! Ice balls bonk! We stay in the car. Try again!');
+  }
+}
+function confetti() {
+  var stage = document.getElementById('stormStage'); if (!stage) return;
+  var emos = ['⭐', '🎉', '✨', '🌟'];
+  for (var i = 0; i < 16; i++) {
+    var d = document.createElement('div');
+    d.className = 'confetti';
+    d.textContent = emos[i % 4];
+    d.style.left = (Math.random() * 94) + '%';
+    d.style.animationDuration = (1.2 + Math.random() * 1.4) + 's';
+    (function (el) { el.addEventListener('animationend', function () { el.remove(); }); })(d);
+    stage.appendChild(d);
+  }
+}
+function renderTrophies() {
+  loadSave();
+  document.getElementById('trophyStars').textContent = SAVE.stars + ' ⭐';
+  var bl = [['rain', '🌧️'], ['hail', '🧊'], ['bolt', '⚡'], ['tornado', '🌪️'], ['rainbow', '🌈']];
+  document.getElementById('trophyBadges').innerHTML = bl.map(function (b) {
+    return '<span style="opacity:' + (SAVE.badges[b[0]] ? '1' : '0.18') + '">' + b[1] + '</span>';
+  }).join(' ');
+  var L = SAVE.learn || { hundred: 0, abc: 0, shapes: 0, names: 0 };
+  document.getElementById('trophyLearn').innerHTML =
+    '🚀 Counted to 100: ' + L.hundred + ' time' + (L.hundred === 1 ? '' : 's') + '<br>' +
+    '🔤 ABC rounds won: ' + L.abc + '<br>' +
+    '🔷 Shape hunts won: ' + L.shapes + '<br>' +
+    '✏️ Names written: ' + L.names;
+  document.getElementById('trophyCars').innerHTML = CARS.map(function (c) {
+    return '<span style="opacity:' + (SAVE.cars[c.e] ? '1' : '0.18') + '">' + c.e + '</span>';
+  }).join(' ');
+}
+
+/* ---------- COUNT TO 100 ---------- */
+var c100Timer = null, c100Pos = 0, c100QuizScore = 0, c100Answer = 0;
+var ONES = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+var TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+function numWord(n) {
+  if (n === 100) return 'one hundred';
+  if (n < 20) return ONES[n];
+  var t = Math.floor(n / 10), o = n % 10;
+  return TENS[t] + (o ? '-' + ONES[o] : '');
+}
+function starBurst(stage) {
+  if (!stage) return;
+  var emos = ['⭐', '🎉', '✨', '🌟'];
+  for (var i = 0; i < 16; i++) {
+    var d = document.createElement('div');
+    d.className = 'confetti';
+    d.textContent = emos[i % 4];
+    d.style.left = (Math.random() * 94) + '%';
+    d.style.animationDuration = (1.2 + Math.random() * 1.4) + 's';
+    (function (el) { el.addEventListener('animationend', function () { el.remove(); }); })(d);
+    stage.appendChild(d);
+  }
+}
+function setup100() {
+  loadSave();
+  document.getElementById('c100Stars').textContent = SAVE.stars;
+  var chart = document.getElementById('chart100');
+  if (chart.childElementCount === 0) {
+    for (var n = 1; n <= 100; n++) {
+      var b = document.createElement('button');
+      b.className = 'ncell'; b.textContent = n; b.id = 'nc-' + n;
+      (function (num, btn) {
+        btn.addEventListener('click', function () {
+          stopCount100();
+          lightCell(num);
+          say(numWord(num) + '!');
+          beep(420 + num * 4, 0.09, 'triangle');
+        });
+      })(n, b);
+      chart.appendChild(b);
+    }
+  }
+  document.getElementById('c100Msg').textContent = 'Tap a number to hear it!';
+  document.getElementById('c100Quiz').innerHTML = '';
+}
+function lightCell(n) {
+  var prev = document.querySelectorAll('.ncell.now');
+  for (var i = 0; i < prev.length; i++) prev[i].classList.remove('now');
+  var c = document.getElementById('nc-' + n);
+  if (c) { c.classList.add('lit'); c.classList.add('now'); c.scrollIntoView({ block: 'nearest' }); }
+}
+function stopCount100() {
+  if (c100Timer) { clearInterval(c100Timer); c100Timer = null; }
+  var g = document.getElementById('c100Go'); if (g) g.textContent = '▶️ Count with me!';
+}
+function toggleCount100() {
+  if (c100Timer) { stopCount100(); return; }
+  if (c100Pos >= 100) c100Pos = 0;
+  var cells = document.querySelectorAll('.ncell.lit');
+  if (c100Pos === 0) for (var i = 0; i < cells.length; i++) cells[i].classList.remove('lit');
+  document.getElementById('c100Go').textContent = '⏸️ Stop';
+  say('Ready? Count with me!');
+  c100Timer = setInterval(function () {
+    c100Pos++;
+    lightCell(c100Pos);
+    say(numWord(c100Pos));
+    beep(500 + (c100Pos % 10) * 30, 0.08, 'triangle');
+    document.getElementById('c100Msg').textContent = c100Pos + ' — ' + numWord(c100Pos) + (c100Pos % 10 === 0 ? '! 🎉' : '');
+    if (c100Pos >= 100) {
+      stopCount100();
+      SAVE.stars++; SAVE.learn.hundred++; saveSave();
+      document.getElementById('c100Stars').textContent = SAVE.stars;
+      document.getElementById('c100Msg').textContent = '🎉 100! You counted to ONE HUNDRED!';
+      starBurst(document.getElementById('scr-count100'));
+      setTimeout(function () { say('One hundred! You counted all the way to one hundred, Harrison! Amazing!'); }, 600);
+    }
+  }, 640);
+}
+function quiz100() {
+  stopCount100();
+  var n = 3 + Math.floor(Math.random() * 94);
+  c100Answer = n + 1;
+  var opts = [c100Answer, n, c100Answer + 1 + Math.floor(Math.random() * 3)];
+  if (Math.random() < 0.4) opts[2] = n + 10 <= 100 ? n + 10 : n - 1;
+  opts = opts.filter(function (v, i, a) { return a.indexOf(v) === i; });
+  while (opts.length < 3) opts.push(c100Answer + opts.length + 2);
+  opts.sort(function () { return Math.random() - 0.5; });
+  document.getElementById('c100Msg').textContent = 'What number comes after ' + n + '?';
+  say('What number comes after ' + numWord(n) + '?');
+  var q = document.getElementById('c100Quiz');
+  q.innerHTML = '';
+  opts.forEach(function (v) {
+    var b = document.createElement('button');
+    b.className = 'qbtn'; b.textContent = v;
+    b.addEventListener('click', function () { answer100(v); });
+    q.appendChild(b);
+  });
+}
+function answer100(v) {
+  if (v === c100Answer) {
+    c100QuizScore++;
+    lightCell(v);
+    beep(880, 0.12, 'triangle'); beep(1320, 0.16, 'triangle', 0.1);
+    document.getElementById('c100Msg').textContent = 'YES! ' + v + ' comes after ' + (v - 1) + '! ⭐ ' + c100QuizScore + ' / 5';
+    say('Yes! ' + numWord(v) + '!');
+    if (c100QuizScore >= 5) {
+      c100QuizScore = 0;
+      SAVE.stars++; saveSave();
+      document.getElementById('c100Stars').textContent = SAVE.stars;
+      starBurst(document.getElementById('scr-count100'));
+      say('Five in a row! You earned a star!');
+    }
+    document.getElementById('c100Quiz').innerHTML = '';
+  } else {
+    beep(220, 0.18, 'square');
+    document.getElementById('c100Msg').textContent = 'Good try! Count up once more — what comes right after?';
+    say('Good try! Count up once more!');
+  }
+}
+
+/* ---------- ABC LETTERS ---------- */
+var LETTERS = [
+  ['A', 'Apple', '🍎'], ['B', 'Bear', '🐻'], ['C', 'Cat', '🐱'], ['D', 'Dog', '🐶'],
+  ['E', 'Elephant', '🐘'], ['F', 'Fish', '🐟'], ['G', 'Grapes', '🍇'], ['H', 'Harrison', '⭐'],
+  ['I', 'Ice Cream', '🍦'], ['J', 'Juice', '🧃'], ['K', 'Kite', '🪁'], ['L', 'Lion', '🦁'],
+  ['M', 'Moon', '🌙'], ['N', 'Noah', '⭐'], ['O', 'Orange', '🍊'], ['P', 'Pizza', '🍕'],
+  ['Q', 'Queen', '👑'], ['R', 'Rainbow', '🌈'], ['S', 'Sun', '☀️'], ['T', 'Tornado', '🌪️'],
+  ['U', 'Umbrella', '☂️'], ['V', 'Violin', '🎻'], ['W', 'Whale', '🐳'], ['X', 'X-ray', '🩻'],
+  ['Y', 'Yo-yo', '🪀'], ['Z', 'Zebra', '🦓']
+];
+var abcTarget = '', abcScore = 0, abcMode = false;
+function setupABC() {
+  loadSave();
+  document.getElementById('abcStars').textContent = SAVE.stars;
+  var g = document.getElementById('abcGrid');
+  if (g.childElementCount === 0) {
+    LETTERS.forEach(function (L) {
+      var b = document.createElement('button');
+      b.className = 'lcell'; b.id = 'lc-' + L[0];
+      b.innerHTML = L[0] + '<small>' + L[2] + ' ' + L[1] + '</small>';
+      b.addEventListener('click', function () { tapLetter(L[0]); });
+      g.appendChild(b);
+    });
+  }
+  abcMode = false;
+  document.getElementById('abcMsg').textContent = '';
+}
+function showLetter(L) {
+  var d = LETTERS.filter(function (x) { return x[0] === L; })[0];
+  document.getElementById('abcBig').innerHTML = '<div class="bigL">' + d[0] + '</div><div class="bigW">' + d[2] + ' ' + d[0] + ' is for ' + d[1] + '!</div>';
+}
+function tapLetter(L) {
+  var d = LETTERS.filter(function (x) { return x[0] === L; })[0];
+  if (abcMode) {
+    if (L === abcTarget) {
+      abcScore++;
+      showLetter(L);
+      beep(880, 0.12, 'triangle'); beep(1174, 0.16, 'triangle', 0.09);
+      document.getElementById('abcMsg').textContent = 'YES! That is ' + L + '! ⭐ ' + abcScore + ' / 5';
+      say('Yes! ' + L + '! ' + L + ' is for ' + d[1] + '!');
+      if (abcScore >= 5) {
+        abcScore = 0; abcMode = false;
+        SAVE.stars++; SAVE.learn.abc++; saveSave();
+        document.getElementById('abcStars').textContent = SAVE.stars;
+        starBurst(document.getElementById('scr-abc'));
+        document.getElementById('abcMsg').textContent = '🎉 Five letters found! You earned a star!';
+        setTimeout(function () { say('Five letters found! You earned a star!'); }, 500);
+      } else {
+        setTimeout(abcQuiz, 1300);
+      }
+    } else {
+      beep(220, 0.18, 'square');
+      document.getElementById('abcMsg').textContent = 'Good try! Find the letter ' + abcTarget + '!';
+      say('Good try! Find the letter ' + abcTarget + '!');
+    }
+    return;
+  }
+  showLetter(L);
+  beep(600 + (L.charCodeAt(0) - 65) * 16, 0.1, 'triangle');
+  say(L + '! ' + L + ' is for ' + d[1] + '!');
+}
+function abcQuiz() {
+  abcMode = true;
+  abcTarget = LETTERS[Math.floor(Math.random() * 26)][0];
+  document.getElementById('abcBig').innerHTML = '<div class="bigL">?</div><div class="bigW">Find the letter ' + abcTarget + '!</div>';
+  document.getElementById('abcMsg').textContent = 'Tap the letter ' + abcTarget + ' below 👇';
+  say('Find the letter ' + abcTarget + '!');
+  var c = document.getElementById('lc-' + abcTarget);
+  if (c) c.scrollIntoView({ block: 'nearest' });
+}
+
+/* ---------- SHAPES ---------- */
+var SHAPES = [
+  ['Circle', '#e53e3e', '<circle cx="50" cy="50" r="38"/>', 'A circle has no corners — it rolls and rolls!'],
+  ['Square', '#38a169', '<rect x="15" y="15" width="70" height="70" rx="7"/>', 'A square has 4 sides, all the same!'],
+  ['Triangle', '#dd6b20', '<polygon points="50,10 92,86 8,86"/>', 'A triangle has 3 sides!'],
+  ['Rectangle', '#3182ce', '<rect x="6" y="27" width="88" height="46" rx="7"/>', 'A rectangle has 4 sides — 2 long and 2 short!'],
+  ['Star', '#d69e2e', '<polygon points="50,4 62,37 97,37 69,58 79,93 50,72 21,93 31,58 3,37 38,37"/>', 'A star has 5 points!'],
+  ['Heart', '#d53f8c', '<path d="M50 85 C18 61 7 43 7 28 C7 13 18 5 31 5 C41 5 48 12 50 21 C52 12 59 5 69 5 C82 5 93 13 93 28 C93 43 82 61 50 85 Z"/>', 'A heart is the love shape!'],
+  ['Diamond', '#805ad5', '<polygon points="50,5 88,50 50,95 12,50"/>', 'A diamond has 4 sides, standing on a point!'],
+  ['Oval', '#319795', '<ellipse cx="50" cy="50" rx="43" ry="28"/>', 'An oval is a stretched circle!'],
+  ['Pentagon', '#2b6cb0', '<polygon points="50,5 96,38 78,91 22,91 4,38"/>', 'A pentagon has 5 sides!'],
+  ['Hexagon', '#b7791f', '<polygon points="28,7 72,7 95,50 72,93 28,93 5,50"/>', 'A hexagon has 6 sides — like a honeycomb!']
+];
+var shapeTarget = '', shapeScore = 0, shapeMode = false;
+function setupShapes() {
+  loadSave();
+  document.getElementById('shapeStars').textContent = SAVE.stars;
+  var g = document.getElementById('shapeGrid');
+  if (g.childElementCount === 0) {
+    SHAPES.forEach(function (s) {
+      var b = document.createElement('button');
+      b.className = 'shapeBtn'; b.id = 'sh-' + s[0];
+      b.innerHTML = '<svg viewBox="0 0 100 100" width="72" height="72"><g fill="' + s[1] + '">' + s[2] + '</g></svg><span class="sl">' + s[0] + '</span>';
+      b.addEventListener('click', function () { tapShape(s[0]); });
+      g.appendChild(b);
+    });
+  }
+  shapeMode = false;
+  document.getElementById('shapeMsg').textContent = 'Tap a shape to learn it!';
+}
+function tapShape(name) {
+  var s = SHAPES.filter(function (x) { return x[0] === name; })[0];
+  if (shapeMode) {
+    if (name === shapeTarget) {
+      shapeScore++;
+      beep(880, 0.12, 'triangle'); beep(1174, 0.16, 'triangle', 0.09);
+      document.getElementById('shapeMsg').textContent = 'YES! That is the ' + name + '! ⭐ ' + shapeScore + ' / 5';
+      say('Yes! That is the ' + name + '!');
+      if (shapeScore >= 5) {
+        shapeScore = 0; shapeMode = false;
+        SAVE.stars++; SAVE.learn.shapes++; saveSave();
+        document.getElementById('shapeStars').textContent = SAVE.stars;
+        starBurst(document.getElementById('scr-shapes'));
+        document.getElementById('shapeMsg').textContent = '🎉 Five shapes found! You earned a star!';
+        setTimeout(function () { say('Five shapes found! You earned a star!'); }, 500);
+      } else {
+        setTimeout(shapeQuiz, 1300);
+      }
+    } else {
+      beep(220, 0.18, 'square');
+      document.getElementById('shapeMsg').textContent = 'Good try! Find the ' + shapeTarget + '!';
+      say('Good try! Find the ' + shapeTarget + '!');
+    }
+    return;
+  }
+  beep(640, 0.1, 'triangle');
+  document.getElementById('shapeMsg').textContent = s[0] + '! ' + s[3];
+  say(s[0] + '! ' + s[3]);
+}
+function shapeQuiz() {
+  shapeMode = true;
+  shapeTarget = SHAPES[Math.floor(Math.random() * SHAPES.length)][0];
+  document.getElementById('shapeMsg').textContent = 'Shape hunt! Tap the ' + shapeTarget + '! 👇';
+  say('Shape hunt! Tap the ' + shapeTarget + '!');
+}
+
+/* ---------- WRITE MY NAME ---------- */
+var myName = 'HARRISON', nameIdx = 0, nameDrawing = false, nameLX = 0, nameLY = 0;
+function setupName() {
+  loadSave();
+  document.getElementById('nameStars').textContent = SAVE.stars;
+  setName(myName);
+}
+function setName(n) {
+  myName = n; nameIdx = 0;
+  renderNameDots();
+  showGuideLetter();
+  document.getElementById('nameMsg').textContent = 'Trace the letter ' + myName[0] + ' with your finger! 👆';
+  say('Let us write ' + n + '! Trace the letter ' + myName[0] + '!');
+}
+function renderNameDots() {
+  var d = document.getElementById('nameDots');
+  d.innerHTML = '';
+  for (var i = 0; i < myName.length; i++) {
+    var s = document.createElement('div');
+    s.className = 'ldot' + (i < nameIdx ? ' done' : (i === nameIdx ? ' cur' : ''));
+    s.textContent = myName[i];
+    d.appendChild(s);
+  }
+}
+function nameCtx(id) { return document.getElementById(id).getContext('2d'); }
+function sizeNameCanvases() {
+  var wrap = document.getElementById('nameCanvasWrap');
+  var r = wrap.getBoundingClientRect();
+  if (r.width < 20) return;
+  ['nameGuide', 'nameDraw'].forEach(function (id) {
+    var c = document.getElementById(id);
+    c.width = r.width; c.height = r.height;
+  });
+}
+function showGuideLetter() {
+  sizeNameCanvases();
+  var wrap = document.getElementById('nameCanvasWrap');
+  var r = wrap.getBoundingClientRect();
+  var g = nameCtx('nameGuide');
+  g.clearRect(0, 0, r.width, r.height);
+  var size = Math.min(r.width, r.height) * 0.92;
+  g.font = '900 ' + size + 'px "Arial Rounded MT Bold", Arial, sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(246,201,69,0.20)';
+  g.fillText(myName[nameIdx], r.width / 2, r.height / 2 + size * 0.04);
+  g.strokeStyle = 'rgba(15,36,64,0.45)';
+  g.lineWidth = 3;
+  g.setLineDash([16, 12]);
+  g.strokeText(myName[nameIdx], r.width / 2, r.height / 2 + size * 0.04);
+  g.setLineDash([]);
+  clearNameDraw();
+}
+function clearNameDraw() {
+  var wrap = document.getElementById('nameCanvasWrap');
+  var r = wrap.getBoundingClientRect();
+  var d = nameCtx('nameDraw');
+  d.clearRect(0, 0, r.width, r.height);
+}
+function hearLetter() {
+  say('The letter ' + myName[nameIdx] + '!');
+  beep(700, 0.1, 'triangle');
+}
+function letterDone() {
+  beep(880, 0.12, 'triangle'); beep(1174, 0.18, 'triangle', 0.1);
+  nameIdx++;
+  renderNameDots();
+  if (nameIdx >= myName.length) {
+    SAVE.stars += 2; SAVE.learn.names++; saveSave();
+    document.getElementById('nameStars').textContent = SAVE.stars;
+    document.getElementById('nameMsg').textContent = '🎉 ' + myName + '! You wrote your name!';
+    starBurst(document.getElementById('scr-name'));
+    var letters = myName.split('').join(', ');
+    say(letters + ' — ' + myName + '! You wrote your name! Great job!');
+    nameIdx = 0;
+    setTimeout(function () { renderNameDots(); showGuideLetter(); }, 2600);
+    return;
+  }
+  document.getElementById('nameMsg').textContent = 'Great tracing! Now the letter ' + myName[nameIdx] + '!';
+  say('Great tracing! Now the letter ' + myName[nameIdx] + '!');
+  showGuideLetter();
+}
+(function () {
+  var c = document.getElementById('nameDraw');
+  function pos(e) {
+    var r = c.getBoundingClientRect();
+    var t = (e.touches && e.touches[0]) ? e.touches[0] : e;
+    return { x: t.clientX - r.left, y: t.clientY - r.top };
+  }
+  c.addEventListener('pointerdown', function (e) {
+    nameDrawing = true;
+    var p = pos(e); nameLX = p.x; nameLY = p.y;
+  });
+  c.addEventListener('pointermove', function (e) {
+    if (!nameDrawing) return;
+    e.preventDefault();
+    var p = pos(e);
+    var d = nameCtx('nameDraw');
+    var r = c.getBoundingClientRect();
+    d.strokeStyle = '#e53e3e'; d.lineWidth = Math.max(9, r.width * 0.03);
+    d.lineCap = 'round'; d.lineJoin = 'round';
+    d.beginPath(); d.moveTo(nameLX, nameLY); d.lineTo(p.x, p.y); d.stroke();
+    nameLX = p.x; nameLY = p.y;
+  });
+  c.addEventListener('pointerup', function () { nameDrawing = false; });
+  c.addEventListener('pointerleave', function () { nameDrawing = false; });
+})();
+</script>
+</body>
+</html>
